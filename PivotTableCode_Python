@@ -1,0 +1,48 @@
+"""
+Pivot table python code.
+Author: Alex Christsensen
+
+Input requirements: 
+- Table: will need the data from the summary metric table or a similarly formatted table. currently this is passed in
+by downloading a csv from superset and reading it in. However, it is expected that the table parameter will be queried directly
+from a server using sql. 
+- Name: will need to get a list of all study participants in the datatable and call pivot_table_builder on each of their names.
+
+Output: currently just prints each pivot table. However, it is expected that the pandas dataframe will be saved and incorporated
+into a Dash object that is interactive for the coaches use
+"""
+
+import pandas as pd
+import numpy as np
+
+#read in data
+table = pd.read_csv("summary_metric_table.csv")
+
+def pivot_table_builder(Name, table):
+    metric_list = ["peak_power" , "average_power", "peak_force","average_force", "peak_speed","average_speed"]
+    for metric in metric_list:
+        print(metric) #test
+        pivot_table = sub_table_builder(Name, metric, table)
+        #insert line of code here to print your table in dash
+        print(pivot_table)
+        
+def sub_table_builder(Name, metric, table):
+    data = table[table['name'] == Name].reset_index(drop = True) #get athlete, reset index
+    vec = data[metric] #get the desired column
+    matrix = np.empty((len(vec), len(vec)))
+    rownames = []
+  #loop through the data, get the differences
+    for row in range(0, len(vec)):
+        datelist = data["datetime"][row].split()
+        #rownames[row] = str("Date " + str(datelist[0]) + " Weight " + str(data["concentric_load"][row]) )
+        rownames.append(("Date " + str(datelist[0]) + " Weight " + str(data["concentric_load"][row])))
+        for col in range(0, len(vec)):
+           # print(row, col)               
+            matrix[row,col] = vec[col] - vec[row]
+      #set the row and column names of the matrix
+    df = pd.DataFrame(matrix, index=rownames, columns=rownames)
+    
+    
+    #if you want to save as csv:
+    #df.to_csv('df.csv', index=True, header=True, sep=' ')
+    return df
