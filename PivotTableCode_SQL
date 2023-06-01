@@ -1,0 +1,37 @@
+/*
+Pivot table SQL code.
+Author: Alex Christsensen
+
+This code builds the summary table that is required by the PivotTableCode_Python file. It is all of the study participants and all 
+of their 1080 run dates and metrics.
+
+Because the PivotTableCode_Python calculates the dataframe differences using only the original values, the columns that are most 
+important are name, datetime, concentric_load, peak_power, peak_force, peak_speed, average_power, average_force, average_speed.
+The "difference" columns are not used directly and are more for reference.
+*/
+
+SELECT 	
+  name, datetime, concentric_load, peak_power, 
+  peak_power - LAG(peak_power)
+  OVER (PARTITION BY name ORDER BY datetime) AS peak_power_difference,
+  average_power, 
+  average_power - LAG(average_power)
+  OVER (PARTITION BY name ORDER BY datetime) AS average_power_difference,
+  peak_speed, 
+  peak_speed - LAG(peak_speed)
+  OVER (PARTITION BY name ORDER BY datetime) AS peak_speed_difference,
+  average_speed , 
+  average_speed - LAG(average_speed)
+  OVER (PARTITION BY name ORDER BY datetime) AS average_speed_difference,
+  peak_force, 
+  peak_force  - LAG(peak_force)
+  OVER (PARTITION BY name ORDER BY datetime) AS peak_force_difference,
+  average_force , 
+  average_force - LAG(average_force)
+  OVER (PARTITION BY name ORDER BY datetime) AS average_force_difference
+FROM runs1080p  
+/*WHERE name = 'MDH-5948-6311' --testing for a single participant
+AND datetime >= DATE('2023-1-12')*/
+WHERE datetime >= DATE('2023-1-12')
+ORDER BY name, datetime ASC  ;
+
